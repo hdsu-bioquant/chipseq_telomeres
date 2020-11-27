@@ -1,0 +1,74 @@
+#==============================================================================#
+# Author: Sebastian Steinhauser - s.steinhauser@gmx.net
+# Date: 29.04.2016
+# Author: Carl Herrmann
+# Date: 05.02.2019
+# Comment:
+# In the following file, modify /home/herrmanc/pipelines/ to the path 
+# containing the pipeline in your directory structure  
+#==============================================================================#
+### SAMPLE Info
+## === indicate the path to the sample file
+## === which should contain 4 tab separated columns
+## === sample <tab> treatmen <tab> IP/input <tab> technical replicate (rep1,rep2,...)
+sampletxt: /icgc/dkfzlsdf/analysis/B080/herrmanc/Projects/Neuroblastoma_Frank/data_new/tumors/2019-02-09-sabine_hg38/new_samples_to_process.txt
+
+## === indicate the name of the control file
+control: input
+fqsuffix: .fastq.gz
+
+## === Define ChIP-seq PIPELINE paths
+datapath: /icgc/dkfzlsdf/analysis/B080/herrmanc/Projects/Neuroblastoma_Frank/data_new/tumors/2019-02-09-sabine_hg38/
+srcpath: src/
+
+#==============================================================================#
+#                   Read QC, trimming & mapping                                #
+#==============================================================================#
+### FILES - NEED TO BE ADJUSTED!
+index: /icgc/ngs_share/assemblies/hg_GRCh38/indexes/bowtie/bowtie2_GCA_000001405.15_GRCh38/GCA_000001405.15_GRCh38_no_alt_analysis_set
+##
+### PARAMETERS
+# Read filtering [default parameters from  Bunestro et.al]
+mqthres: 30 # Min MQ
+alignparam: '--sensitive -q -p 10'
+#==============================================================================#
+#                               ChIP-seq QC                                    #
+#==============================================================================#
+### FILES - NEED TO BE ADJUSTED!
+tss: resources/hg38/fantom/hg38_fair+new_CAGE_peaks_phase1and2.bed
+##
+### PARAMETERS
+# deeptools, create TSS Profile & Heatmap
+tssdist: 1500
+heatmapcol: 'Reds'
+
+#==============================================================================#
+#            ChIP-seq peak calling and signal track computation                #
+#==============================================================================#
+### FILES - NEED TO BE ADJUSTED!
+
+### PARAMETERS
+# Peak calling - MACS2
+macs2species: 'hs' # 'hs'/'mm'
+macs2fdr: 0.01
+macs2peaks: [broadPeak, narrowPeak]
+# Peak calling - SICER
+redundancythres: 1
+window: 200
+fragsize: 150
+genomefrac: 0.7
+gap: 600
+sicerfdr: 0.01
+# BigWig - deepTools
+binsize: 40
+scale: [SES, readCount]  #   --scaleFactorsMethod {readCount,SES}
+#scale: readCount
+numbersamples: 1000000
+samplelength: 1000
+norm: RPGC
+ratio: [subtract] # --ratio {log2,ratio,subtract,add,reciprocal_ratio}
+# Genome information
+genome: hg38
+effectiveGenomeSize: 2913022398 # https://deeptools.readthedocs.io/en/latest/content/feature/effectiveGenomeSize.html
+chrinfo: resources/hg38/hg38.chrom.sizes
+chrorder: resources/hg38/hg38.chrom.names
